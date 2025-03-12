@@ -42,8 +42,8 @@ If an element in in brackets, it means that this element is not in the set.
 In that case, there will also be a star at the beginning of the line.
 Below that, the orbits are grouped by their average value.
 
-You can select ``look for patterns'' to see if there are any patterns in set of grouped orbits.
-The ``Pattern search depth'' lets you choose how often the program should recursively look for patterns in patterns.
+You can select `look for patterns` to see if there are any patterns in set of grouped orbits.
+The `Pattern search depth` lets you choose how often the program should recursively look for patterns in patterns.
 Meaning one pattern is a list how often each number appears, if you select a depth of $2$, the program will look for a pattern in this list.
 If it finds a pattern that is unique to a set of grouped orbits, it will print it out.
 
