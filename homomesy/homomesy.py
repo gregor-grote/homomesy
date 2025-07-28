@@ -52,7 +52,7 @@ class FindStatFunction(NamedFunction):
 
     def id(self):
         return self._id
-    
+
     def __eq__(self, value):
         if isinstance(value, FindStatFunction):
             return self.id() == value.id()
@@ -64,7 +64,7 @@ class FindStatFunction(NamedFunction):
             return False
 
 
-@dataclass  
+@dataclass
 class CollectionWithMapsAndStats:
     collection: Callable[[int], Iterable[Iterable[int]]]
     name: str
@@ -237,9 +237,7 @@ all_collections["Fubini rankings"] = CollectionWithMapsAndStats(
 )
 
 print("Checking parking functions maps on Fubini rankings")
-fubini_rankings = (
-    FubiniRankings(3) + FubiniRankings(4) + FubiniRankings(5)
-)
+fubini_rankings = FubiniRankings(3) + FubiniRankings(4) + FubiniRankings(5)
 
 for m in all_collections["Parking functions"].maps:
     if not does_map_project_outside_set(m, fubini_rankings):
@@ -309,9 +307,7 @@ all_collections["Cayley permutations"] = CollectionWithMapsAndStats(
 print("Checking parking functions maps on Cayley permutations")
 
 cayley_permutations = (
-    CayleyPermutations(3)
-    + CayleyPermutations(4)
-    + CayleyPermutations(5)
+    CayleyPermutations(3) + CayleyPermutations(4) + CayleyPermutations(5)
 )
 
 for m in all_collections["Parking functions"].maps:
@@ -321,6 +317,7 @@ for m in all_collections["Parking functions"].maps:
 print("done checking maps")
 
 # Homomesy result
+
 
 def format_row(x, y, ins):
     if ins:
@@ -362,10 +359,12 @@ class HomomesyResult:
             return self.all_avgs[0]
         else:
             return None
-    
+
     def homometric_constants_map(self):
         if self.is_homometric():
-            return {l: a for l, a in zip([len(ll) for ll in self.all_orbits] ,self.all_avgs)}
+            return {
+                l: a for l, a in zip([len(ll) for ll in self.all_orbits], self.all_avgs)
+            }
         else:
             return None
 
@@ -414,13 +413,6 @@ class HomomesyResult:
 
     def get_all_elements(self):
         return sum(self.all_orbits, [])
-
-    def find_patterns(self, depth=2, filter_zero_sequences=False):
-        return find_patterns(
-            self.get_all_elements(),
-            depth=depth,
-            filter_zero_sequences=filter_zero_sequences,
-        )
 
     def print_all_orbits(self):
         for a, c, s, ins in zip(
@@ -541,9 +533,7 @@ def lazy_orbits(S, f):
         yield orb, in_set
 
 
-def check_homomesy(
-    S, bijection, stat
-):
+def check_homomesy(S, bijection, stat):
     all_avgs = []
     all_orbits = []
     all_stats = []
@@ -726,5 +716,5 @@ for v in all_collections.values():
     for s in general_statistics:
         if s not in v.stats:
             v.stats.append(s)
-    
+
 print("Initialization complete. You can now use the homomesy module.")
