@@ -19,7 +19,7 @@ docker pull sagemath/sagemath
 Then start the jupiter notebook server:
 
 ```bash
-docker run --name homomessy_notebook_server -p8888:8888 sagemath/sagemath:latest sage-jupyter
+docker run --name homomessy_notebook_server -p8888:8888  -v "${PWD}/homomesy":/home/sage/homomesy -v "${PWD}/out":/home/sage/out sagemath/sagemath:latest sage-jupyter
 ```
 
 After that, an url will be printed, that can be used to connect to the jupiter notebook server using any IDE.
