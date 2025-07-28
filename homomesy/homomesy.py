@@ -7,6 +7,7 @@ from sage.all import (
     ParkingFunctions,
     findstat,
 )
+from sage.rings.rational_field import QQ
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.combinat.combinat import CombinatorialElement
 from sage.databases.findstat import FindStatMaps, FindStatStatistics
@@ -51,6 +52,16 @@ class FindStatFunction(NamedFunction):
 
     def id(self):
         return self._id
+    
+    def __eq__(self, value):
+        if isinstance(value, FindStatFunction):
+            return self.id() == value.id()
+        elif isinstance(value, str):
+            return self.id() == value
+        elif isinstance(value, Callable):
+            return self.id() == value.__name__
+        else:
+            return False
 
 
 @dataclass  
@@ -351,6 +362,12 @@ class HomomesyResult:
             return self.all_avgs[0]
         else:
             return None
+    
+    def homometric_constants_map(self):
+        if self.is_homometric():
+            return {l: a for l, a in zip([len(ll) for ll in self.all_orbits] ,self.all_avgs)}
+        else:
+            return None
 
     def is_homometric(self):
         len_queue_queue = list(set([len(c) for c in self.all_orbits]))
@@ -413,12 +430,16 @@ class HomomesyResult:
 
     def print_result(self):
         print(f"Homomesic: {self.is_homomesic()}", end="")
-        if self.homomesy_constant() is not None:
+        if self.is_homomesic():
             print(f" with homomesy constant {self.homomesy_constant()}")
         else:
             print()
         print(f"Homomesic using only orbits in set: {self.is_homomesic_in_set()}")
-        print(f"Homometric: {self.is_homometric()}")
+        print(f"Homometric: {self.is_homometric()}", end="")
+        if self.is_homometric():
+            print(f" with homometric constants {self.homometric_constants_map()}")
+        else:
+            print()
         print(f"Homometric using only orbits in set: {self.is_homometric_in_set()}")
 
     def print_grouped_orbits(self):
@@ -498,6 +519,7 @@ class HomomesyResult:
 
 
 def lazy_orbits(S, f):
+    S = set(S)
     visited = set()
     for e in S:
         if e in visited:
@@ -520,18 +542,18 @@ def lazy_orbits(S, f):
 
 
 def check_homomesy(
-    S, bijection, stat, after_bijection_map=lambda x: x, pre_stat_map=lambda x: x
+    S, bijection, stat
 ):
     all_avgs = []
     all_orbits = []
     all_stats = []
     all_in_sets = []
 
-    for orbit, in_set in lazy_orbits(S, lambda x: after_bijection_map(bijection(x))):
+    for orbit, in_set in lazy_orbits(S, lambda x: bijection(x)):
 
         cur_orbit = list(orbit)
-        cur_stats = [stat(pre_stat_map(x)) for x in cur_orbit]
-        cur_avg = sum(cur_stats) / float(len(cur_orbit))
+        cur_stats = [stat(x) for x in cur_orbit]
+        cur_avg = ~(QQ(len(cur_orbit))) * sum(cur_stats)
         all_avgs.append(cur_avg)
         all_orbits.append(cur_orbit)
         all_stats.append(cur_stats)
@@ -543,7 +565,6 @@ def check_homomesy(
 def check_homomesy_with_orbits(
     orbits,
     stat,
-    pre_stat_map=lambda x: x,
 ):
     all_avgs = []
     all_stats = []
@@ -551,8 +572,8 @@ def check_homomesy_with_orbits(
 
     for orbit in orbits:
         cur_orbit = list(orbit)
-        cur_stats = [stat(pre_stat_map(x)) for x in cur_orbit]
-        cur_avg = sum(cur_stats) / float(len(cur_orbit))
+        cur_stats = [stat(x) for x in cur_orbit]
+        cur_avg = ~(QQ(len(cur_orbit))) * sum(cur_stats)
         all_avgs.append(cur_avg)
         all_stats.append(cur_stats)
         all_in_sets.append([True] * len(cur_orbit))
@@ -564,10 +585,10 @@ def check_homomesy_with_orbits(
 
 
 def the_number_of_fixed_points(lst: HashableList[int]) -> int:
-    return len([e for i, e in enumerate(lst) if i == e])
+    return len([e for i, e in enumerate(lst) if i + 1 == e])
 
 
-fixed_points = FindStatFunction(
+the_number_of_fixed_points = FindStatFunction(
     the_number_of_fixed_points, "St000022", "Number of fixed points"
 )
 
@@ -702,6 +723,8 @@ general_statistics = [
 
 
 for v in all_collections.values():
-    v.stats += general_statistics
+    for s in general_statistics:
+        if s not in v.stats:
+            v.stats.append(s)
     
 print("Initialization complete. You can now use the homomesy module.")
