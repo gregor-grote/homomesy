@@ -44,11 +44,19 @@ class NamedFunction:
 
 
 class FindStatFunction(NamedFunction):
-    def __init__(self, f, id=None, name=None):
+    def __init__(self, f, id=None, name=None, full_name=None):
         super().__init__(f, name=name)
         self._id = id if id is not None else f.id_str()
         if name is not None:
             self.__name__ = f"{id}: {name}"
+        elif full_name is not None:
+            self.__name__ = full_name
+
+    @staticmethod
+    def from_new_code(f, new_code):
+        fsf = FindStatFunction(f)
+        fsf.f = new_code
+        return fsf
 
     def id(self):
         return self._id
@@ -111,6 +119,24 @@ class HashableList[T](Iterable[T]):
 
     def __hash__(self):
         return hash(tuple(self.lst))
+
+
+class PreMapper:
+    def __init__(self, f, pre):
+        self.func = f
+        self.pre = pre
+
+    def __call__(self, *args, **kwds):
+        return self.func(self.pre(*args, **kwds))
+
+
+class PostMapper:
+    def __init__(self, f, post):
+        self.func = f
+        self.post = post
+
+    def __call__(self, *args, **kwds):
+        return self.post(self.func(*args, **kwds))
 
 
 # Helper functions
@@ -231,7 +257,10 @@ class FubiniRankings(Parent, HashableList[FubiniRanking]):
 all_collections["Fubini rankings"] = CollectionWithMapsAndStats(
     FubiniRankings,
     "Fubini rankings",
-    all_collections["Parking functions"].stats,
+    [
+        FindStatFunction.from_new_code(stat, PreMapper(stat, ParkingFunction))
+        for stat in all_collections["Parking functions"].stats
+    ],
     [],
     FubiniRanking,
 )
@@ -240,8 +269,14 @@ print("Checking parking functions maps on Fubini rankings")
 fubini_rankings = FubiniRankings(3) + FubiniRankings(4) + FubiniRankings(5)
 
 for m in all_collections["Parking functions"].maps:
-    if not does_map_project_outside_set(m, fubini_rankings):
-        all_collections["Fubini rankings"].maps.append(m)
+    if not does_map_project_outside_set(
+        lambda x: FubiniRanking(m(ParkingFunction(x))), fubini_rankings
+    ):
+        all_collections["Fubini rankings"].maps.append(
+            FindStatFunction.from_new_code(
+                m, PostMapper(PreMapper(m, ParkingFunction), FubiniRanking)
+            )
+        )
 
 print("done checking maps")
 
@@ -298,7 +333,10 @@ class CayleyPermutations(Parent, HashableList[CayleyPermutation]):
 all_collections["Cayley permutations"] = CollectionWithMapsAndStats(
     CayleyPermutations,
     "Cayley permutations",
-    all_collections["Parking functions"].stats,
+    [
+        FindStatFunction.from_new_code(stat, PreMapper(stat, ParkingFunction))
+        for stat in all_collections["Parking functions"].stats
+    ],
     [],
     CayleyPermutation,
 )
@@ -312,7 +350,11 @@ cayley_permutations = (
 
 for m in all_collections["Parking functions"].maps:
     if not does_map_project_outside_set(m, cayley_permutations):
-        all_collections["Cayley permutations"].maps.append(m)
+        all_collections["Cayley permutations"].maps.append(
+            FindStatFunction.from_new_code(
+                m, PostMapper(PreMapper(m, ParkingFunction), CayleyPermutation)
+            )
+        )
 
 print("done checking maps")
 
@@ -510,7 +552,7 @@ class HomomesyResult:
             print("\n")
 
 
-def lazy_orbits(S, f):
+def lazy_orbits(S, f, yield_in_set=False):
     S = set(S)
     visited = set()
     for e in S:
@@ -526,11 +568,15 @@ def lazy_orbits(S, f):
                     "Function is not a bijection. Orbit: "
                     + " -> ".join([str(x) for x in orb + [curr]])
                 )
-            in_set.append(curr in S)
+            if yield_in_set:
+                in_set.append(curr in S)
             visited.add(curr)
             orb.append(curr)
             curr = f(curr)
-        yield orb, in_set
+        if yield_in_set:
+            yield orb, in_set
+        else:
+            yield orb
 
 
 def check_homomesy(S, bijection, stat):
@@ -539,7 +585,7 @@ def check_homomesy(S, bijection, stat):
     all_stats = []
     all_in_sets = []
 
-    for orbit, in_set in lazy_orbits(S, lambda x: bijection(x)):
+    for orbit, in_set in lazy_orbits(S, bijection, yield_in_set=True):
 
         cur_orbit = list(orbit)
         cur_stats = [stat(x) for x in cur_orbit]
@@ -569,6 +615,34 @@ def check_homomesy_with_orbits(
         all_in_sets.append([True] * len(cur_orbit))
 
     return HomomesyResult(all_avgs, orbits, all_stats, all_in_sets)
+
+
+# def check_homomesy_for_collection_with_maps_and_stats(S, bijections, stats):
+#     results = []
+#     stat_values = {ele: [stat(ele) for stat in stats] for ele in S}
+#     for f in bijections:
+#         orbits = lazy_orbits(S, f, yield_in_set=False)
+#         all_avgs_matrix = []
+#         all_stats_matrix = []
+#         all_in_sets = []
+#         for orbit in orbits:
+#             cur_orbit = list(orbit)
+#             cur_stats = [stat_values[x] for x in cur_orbit]
+#             cur_avgs = [~(QQ(len(cur_orbit))) * sum(x) for x in zip(*cur_stats)]
+#             all_avgs_matrix.append(cur_avgs)
+#             all_stats_matrix.append(cur_stats)
+#             all_in_sets.append([True] * len(cur_orbit))
+#         for i in range(len(stats)):
+#             all_avgs = [x[i] for x in all_avgs_matrix]
+#             all_stats = [x[i] for x in all_stats_matrix]
+#             results.append(
+#                 (
+#                     f,
+#                     stats[i],
+#                     HomomesyResult(all_avgs, all_stats, all_stats, all_in_sets),
+#                 )
+#             )
+#     return results
 
 
 # A bunch of statistics
