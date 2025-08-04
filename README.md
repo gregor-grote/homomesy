@@ -1,4 +1,4 @@
-# Homomessy
+# Homomesy
 
 This repository contains code to visualize and analyze homomesic behavior of different sets and statistics.
 
