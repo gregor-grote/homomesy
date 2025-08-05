@@ -21,10 +21,12 @@ docker run --name homomessy_notebook_server -p8888:8888  -v "${PWD}/homomesy":/h
 ```
 
 After that, an url will be printed that can be used to connect to the jupiter notebook server using any IDE. 
-Make sure to use the Python kernel and not the Sage kernel, as the code is written in Python.
+Make sure to use the Python kernel and **not** the Sage kernel, as the code is written in Python.
 
 ## How to use
 
 the folder `out` is mounted to the container, so if you want to save some plots, you have to save them in the `out` folder, otherwise they will not be visible to you.
+For example `plt.savefig("out/plot.png")` will save the plot in the `out` folder.
+
 
 
