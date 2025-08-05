@@ -46,7 +46,13 @@ class NamedFunction:
 class FindStatFunction(NamedFunction):
     def __init__(self, f, id=None, name=None, full_name=None):
         super().__init__(f, name=name)
-        self._id = id if id is not None else f.id_str()
+        self._id = None
+        if id is not None:
+            self._id = id
+        elif hasattr(f, "id"):
+            self._id = f.id()
+        elif hasattr(f, "_id_str"):
+            self._id = f._id_str()
         if name is not None:
             self.__name__ = f"{id}: {name}"
         elif full_name is not None:
@@ -87,6 +93,7 @@ class HashableList[T](Iterable[T]):
             self.lst = list(lst.lst)
         else:
             self.lst = list(lst)
+        self._hash = hash(tuple(self.lst))
 
     def __iter__(self):
         return iter(self.lst)
@@ -117,8 +124,8 @@ class HashableList[T](Iterable[T]):
         except:
             return False
 
-    def __hash__(self):
-        return hash(tuple(self.lst))
+    def __hash__(self):            
+        return self._hash
 
 
 class PreMapper:
