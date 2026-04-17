@@ -30,3 +30,42 @@ For example `plt.savefig("out/plot.png")` will save the plot in the `out` folder
 
 
 
+## Common issues
+
+### Mac M4
+
+For ARM64 architectures, you require the following image:
+
+```bash
+docker pull sagemathinc/sagemath-core-arm64:10.7
+```
+
+then run the docker with:
+
+```bash
+docker run --name homomessy_notebook_server \
+  -p 8888:8888 \
+  -v "${PWD}/homomesy":/home/sage/homomesy \
+  -v "${PWD}/out":/home/sage/out \
+  sagemathinc/sagemath-core-arm64:10.7 \
+  sage -n jupyter --ip=0.0.0.0 --no-browser --NotebookApp.token='' --allow-root
+```
+
+### No Module named homomes found
+
+When that error happens, run the following python code before importing the `homomesy` module:
+
+```pyhton
+import os
+os.chdir('/home/sage')
+```
+
+### No verified code found
+
+When that error happens, run the following python code:
+
+```pyhton
+from sage.all findstat
+findstat()._allow_execution = True
+```
+
