@@ -51,9 +51,9 @@ docker run --name homomessy_notebook_server \
   sage -n jupyter --ip=0.0.0.0 --no-browser --NotebookApp.token='' --allow-root
 ```
 
-### No Module named homomes found
+### No Module named homomessy found
 
-When that error happens, run the following python code before importing the `homomesy` module:
+When that error happens, run the following python code before importing the `homomessy` module:
 
 ```pyhton
 import os
